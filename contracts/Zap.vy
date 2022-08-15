@@ -53,3 +53,8 @@ def deposit(vault: address, crv_pool: address, amounts: DynArray[uint256, 4], mi
     vault_tokens: uint256 = self._deposit(vault)
     assert vault_tokens >= min_vault_shares
     return vault_tokens
+
+@external
+def sweep(token: address):
+    value: uint256 = ERC20(token).balanceOf(self)
+    ERC20(token).transfer(msg.sender, value, default_return_value=True)
