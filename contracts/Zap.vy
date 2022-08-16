@@ -1,4 +1,10 @@
 # @version 0.3.6
+
+"""
+@title A zap contract for curve vaults
+@license MIT
+"""
+
 from vyper.interfaces import ERC20
 
 interface IStableSwap:
@@ -69,13 +75,32 @@ def _deposit(vault: address) -> uint256:
 @external
 @payable
 def deposit(vault: address, crv_pool: address, amounts: DynArray[uint256, 4], min_vault_shares: uint256) -> uint256:
+    """
+    @notice Zap deposit tokens into vault
+    @dev Pull tokens from the msg.sender, add liquidity into curve and deposit into the vault
+    @dev sending native ETH is possible, it will be used as native ETH or wrapped depending on the curve pool. The amount of ETH sent must match the amount in the amounts array.
+    @param vault The vault address
+    @param crv_pool The curve pool address
+    @param amounts A list of amounts of tokens that are added has liquidity
+    @param min_vault_shares minimal amount of vault shares minted to the msg.sender
+    @return The amount of shares minted
+    """
     value: uint256 = self._prepare(crv_pool, amounts, msg.value)
     self._add_liquidity(crv_pool, amounts, value)
     vault_tokens: uint256 = self._deposit(vault)
     assert vault_tokens >= min_vault_shares
     return vault_tokens
 
+
 @external
 def sweep(token: address):
+    """
+    @notice Sweep tokens sent by mistake
+    @dev Anyone can call this method, use it with caution
+    @param token The token address to sweep
+    """
+    if token == NULL_ADDRESS:
+        send(msg.sender, self.balance)
+        return
     value: uint256 = ERC20(token).balanceOf(self)
     ERC20(token).transfer(msg.sender, value, default_return_value=True)
