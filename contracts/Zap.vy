@@ -103,4 +103,4 @@ def sweep(token: address):
         send(msg.sender, self.balance)
         return
     value: uint256 = ERC20(token).balanceOf(self)
-    ERC20(token).transfer(msg.sender, value, default_return_value=True)
+    assert ERC20(token).transfer(msg.sender, value, default_return_value=True)
